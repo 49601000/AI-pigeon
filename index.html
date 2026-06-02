@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-carrier-pigeon.png">
+<title>AIMP Hub v0.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* TOKENS */
+:root {
+  --bg: #F5F6FA;
+  --surface: #FFFFFF;
+  --surface2: #F0F2F7;
+  --border: #E4E7EF;
+  --border-focus: #4F6EF7;
+  --accent: #4F6EF7;
+  --accent-lt: #EEF1FE;
+  --accent2: #0ECF9C;
+  --accent2-lt: #E6FAF5;
+  --warn: #F7894F;
+  --warn-lt: #FEF2EA;
+  --danger: #EF4444;
+  --danger-lt: #FEE2E2;
+  --text: #1A1D2E;
+  --text-2: #5B6178;
+  --text-3: #9BA3BF;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.10),0 4px 8px rgba(0,0,0,.05);
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --mono: "JetBrains Mono", monospace;
+  --sans: "DM Sans", sans-serif;
+  --display: "Sora", sans-serif;
+  --sidebar-w: 300px;
+  --topbar-h: 56px;
+}
+
+/* RESET */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;height:100%;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+
+/* TOPBAR */
+.topbar{height:var(--topbar-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:200;box-shadow:var(--shadow-sm)}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;font-family:var(--display);flex-shrink:0}
+.logo-name{font-family:var(--display);font-size:15px;font-weight:700;color:var(--text);line-height:1}
+.logo-version{font-size:10px;font-family:var(--mono);color:var(--text-3);letter-spacing:.04em}
+.topbar-spacer{flex:1}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+
+/* LAYOUT */
+.app-layout{flex:1;display:grid;grid-template-columns:var(--sidebar-w) 1fr;overflow:hidden;height:calc(100vh - var(--topbar-h))}
+@media(max-width:720px){.app-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}.sidebar{max-height:260px;border-right:none;border-bottom:1px solid var(--border)}}
+
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sidebar-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.sidebar-body{flex:1;overflow-y:auto;padding:12px}
+
+/* Thread */
+.thread-group{margin-bottom:8px}
+.thread-header{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background .12s;user-select:none}
+.thread-header:hover{background:var(--surface2)}
+.thread-chevron{color:var(--text-3);font-size:10px;transition:transform .18s;display:inline-block}
+.thread-chevron.open{transform:rotate(90deg)}
+.thread-label{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.06em;flex:1}
+.thread-count{font-size:10px;font-family:var(--mono);background:var(--accent-lt);color:var(--accent);padding:1px 6px;border-radius:10px;font-weight:600}
+.thread-messages{padding-left:8px}
+.thread-messages.collapsed{display:none}
+
+/* Log item */
+.log-item{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:var(--r-sm);cursor:pointer;transition:background .1s,border-color .1s;border:1.5px solid transparent;margin-bottom:2px}
+.log-item:hover{background:var(--surface2)}
+.log-item.selected{background:var(--accent-lt);border-color:var(--accent)}
+.log-dot{width:6px;height:6px;border-radius:50%;background:var(--border);margin-top:5px;flex-shrink:0;transition:background .1s}
+.log-item.selected .log-dot{background:var(--accent)}
+.log-meta{flex:1;min-width:0}
+.log-route{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+.log-arrow{color:var(--text-3);font-size:9px}
+.log-subject{font-size:12px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.log-id{font-family:var(--mono);font-size:9px;color:var(--text-3)}
+.log-type-chip{font-family:var(--mono);font-size:9px;font-weight:600;padding:1px 5px;border-radius:4px;background:var(--surface2);color:var(--text-3);border:1px solid var(--border)}
+.empty-state{text-align:center;padding:32px 16px;color:var(--text-3);font-size:12px}
+.empty-state-icon{font-size:28px;margin-bottom:8px}
+
+/* MAIN */
+.main{overflow-y:auto;padding:28px 32px;display:flex;flex-direction:column;gap:20px}
+@media(max-width:720px){.main{padding:16px}}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .18s}
+.card:focus-within{box-shadow:var(--shadow-md)}
+.card-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.card-header-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.card-subtitle{font-size:11px;color:var(--text-3);margin-top:1px}
+.card-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+
+/* FORM */
+label.field-label{display:block;font-size:11px;font-weight:600;color:var(--text-2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+textarea,input[type=text],select{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.6;padding:10px 12px;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+textarea{resize:vertical;min-height:170px}
+textarea:focus,input[type=text]:focus,select:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(79,110,247,.12);background:var(--surface)}
+textarea::placeholder,input::placeholder{color:var(--text-3)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%239BA3BF'%3E%3Cpath d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer}
+select option{background:var(--surface)}
+.fields-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.field-inline{display:flex;gap:8px}
+.field-inline input,.field-inline select{flex:1;min-width:0}
+.launcher-grid{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:12px}
+.launcher-from{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--mono);font-size:12px;font-weight:600;line-height:1.6;padding:10px 12px}
+.launcher-subject{grid-column:1/-1}
+.launcher-body textarea{min-height:150px}
+@media(max-width:980px){.launcher-grid{grid-template-columns:repeat(2,minmax(140px,1fr))}}
+@media(max-width:560px){.launcher-grid{grid-template-columns:1fr}}
+
+/* AI BADGES */
+.ai-badge{display:inline-flex;align-items:center;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;letter-spacing:.04em;white-space:nowrap}
+.ai-USER    {background:#ECFDF5;color:#059669;border:1px solid #A7F3D0}
+.ai-CHATGPT {background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0}
+.ai-CODEX   {background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE}
+.ai-GEMINI  {background:#FAF5FF;color:#7C3AED;border:1px solid #DDD6FE}
+.ai-CLAUDE  {background:#FFF7ED;color:#EA580C;border:1px solid #FED7AA}
+.ai-COPILOT {background:#F0F9FF;color:#0284C7;border:1px solid #BAE6FD}
+.ai-GROK    {background:#FDF4FF;color:#C026D3;border:1px solid #F0ABFC}
+.ai-UNKNOWN {background:#F9FAFB;color:#6B7280;border:1px solid #E5E7EB}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:var(--r-sm);font-size:13px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;line-height:1}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 1px 4px rgba(79,110,247,.3)}
+.btn-primary:hover{background:#3B5AE0;border-color:#3B5AE0;box-shadow:0 4px 12px rgba(79,110,247,.35)}
+.btn-success{background:var(--accent2);color:#fff;border-color:var(--accent2);box-shadow:0 1px 4px rgba(14,207,156,.25)}
+.btn-success:hover{background:#0AB88C}
+.btn-outline{background:transparent;color:var(--text-2);border-color:var(--border)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-lt)}
+.btn-ghost{background:transparent;color:var(--text-2);border-color:transparent}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-danger-outline{background:transparent;color:var(--danger);border-color:#FECACA}
+.btn-danger-outline:hover{background:var(--danger-lt)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-xs{padding:3px 9px;font-size:11px;border-radius:6px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* PARSE RESULT */
+.parse-card{background:var(--accent-lt);border:1.5px solid #C7D2FE;border-radius:var(--r-md);padding:14px 16px;display:none;animation:fadeSlide .2s ease}
+.parse-card.visible{display:block}
+.parse-card-title{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--accent);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.parse-table{display:grid;grid-template-columns:90px 1fr;gap:4px 10px}
+.parse-key{font-family:var(--mono);font-size:11px;color:var(--text-3)}
+.parse-val{font-family:var(--mono);font-size:11px;color:var(--text);font-weight:600;word-break:break-all}
+.parse-auto-tag{font-size:9px;background:var(--warn-lt);color:var(--warn);border:1px solid #FCD9BD;border-radius:4px;padding:0 5px;font-weight:600}
+
+/* DETAIL */
+.detail-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;display:none;animation:fadeSlide .2s ease}
+.detail-card.visible{display:block}
+.detail-meta{padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--text-2);white-space:pre-wrap;line-height:1.7}
+.detail-body-content{padding:14px 16px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:240px;overflow-y:auto}
+
+/* PROMPT */
+.prompt-card{border:1.5px solid var(--accent2);border-radius:var(--r-md);overflow:hidden;display:none;animation:fadeSlide .2s ease;box-shadow:0 0 0 4px var(--accent2-lt)}
+.prompt-card.visible{display:block}
+.prompt-card-header{background:var(--accent2-lt);border-bottom:1px solid #A7F3D0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.prompt-card-label{font-size:11px;font-weight:700;color:#059669;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.prompt-body{padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto;background:#fff;color:var(--text)}
+
+/* MISC */
+.divider{border:none;border-top:1px solid var(--border)}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;font-size:13px;font-weight:500;padding:10px 18px;border-radius:var(--r-md);box-shadow:var(--shadow-lg);opacity:0;transform:translateY(10px);transition:all .22s cubic-bezier(.34,1.56,.64,1);z-index:9999;pointer-events:none;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:#059669}
+.toast.error{background:var(--danger)}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">A</div>
+    <div>
+      <div class="logo-name">AIMP Hub</div>
+      <div class="logo-version">v0.1 &middot; AI Mail Protocol</div>
+    </div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-actions">
+    <button class="btn btn-outline btn-sm" onclick="exportJSON()">&#8679; Export</button>
+    <label class="btn btn-outline btn-sm" style="cursor:pointer">&#8681; Import<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
+    <button class="btn btn-danger-outline btn-sm" onclick="clearAll()">&#9888; 全削除</button>
+  </div>
+</header>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">スレッドログ</span>
+      <button class="btn btn-ghost btn-xs" onclick="renderLog()">&#8635;</button>
+    </div>
+    <div class="sidebar-body" id="logList">
+      <div class="empty-state"><div class="empty-state-icon">&#128269;</div><div>まだログがありません</div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon" style="background:#E6FAF5">&#128640;</div>
+        <div>
+          <div class="card-title">新規質問 / 依頼</div>
+          <div class="card-subtitle">USERからAIへ送るAIMPメッセージを作成します</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="launcher-grid">
+          <div>
+            <label class="field-label">FROM</label>
+            <div class="launcher-from">USER</div>
+          </div>
+          <div>
+            <label class="field-label">TO</label>
+            <select id="launcherTo">
+              <option>CHATGPT</option><option selected>CODEX</option><option>GEMINI</option>
+              <option>CLAUDE</option><option>COPILOT</option><option>GROK</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">TYPE</label>
+            <select id="launcherType">
+              <option>QUESTION</option><option selected>TASK</option><option>REVIEW</option>
+              <option>IMPLEMENTATION</option><option>PROPOSAL</option><option>IDEA</option><option>META</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">PRIORITY</label>
+            <select id="launcherPriority">
+              <option>LOW</option><option selected>NORMAL</option><option>HIGH</option><option>URGENT</option>
+            </select>
+          </div>
+          <div class="launcher-subject">
+            <label class="field-label">SUBJECT</label>
+            <input id="launcherSubject" type="text" placeholder="件名を入力...">
+          </div>
+        </div>
+        <div class="launcher-body">
+          <label class="field-label">BODY</label>
+          <textarea id="launcherBody" placeholder="依頼や質問の本文を入力..."></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="AIMPLauncher.generate()">&#9889; AIMP生成</button>
+          <button class="btn btn-outline" onclick="AIMPLauncher.copy()">&#128203; コピー</button>
+          <button class="btn btn-success" onclick="AIMPLauncher.save()">&#128190; ログに保存</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon" style="background:#EEF1FE">&#128203;</div>
+        <div>
+          <div class="card-title">メッセージ入力</div>
+          <div class="card-subtitle">AIMPメッセージを貼り付けるか直接入力してください</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div>
+          <label class="field-label">メッセージ本文</label>
+          <textarea id="pasteArea" placeholder="MESSAGE_ID: MSG-0001&#10;THREAD_ID: THREAD-0001&#10;FROM: CHATGPT&#10;TO: CODEX&#10;TYPE: REVIEW&#10;PRIORITY: NORMAL&#10;SUBJECT: レビュー依頼&#10;&#10;REASON:&#10;実装観点で確認が必要&#10;&#10;BODY:&#10;本文をここに..." oninput="autoParseDebounce()"></textarea>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-outline btn-sm" onclick="parseMessage()">&#128269; パース実行</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearCompose()">&#10005; クリア</button>
+          </div>
+        </div>
+        <div id="parseResult" class="parse-card">
+          <div class="parse-card-title">&#10022; 解析結果</div>
+          <div class="parse-table" id="parseTableBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon" style="background:#E6FAF5">&#9881;&#65039;</div>
+        <div>
+          <div class="card-title">フィールド確認 / 手動入力</div>
+          <div class="card-subtitle">自動パースできない項目は手動で選択してください</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="fields-grid">
+          <div>
+            <label class="field-label">FROM</label>
+            <select id="fieldFrom">
+              <option value="">-- 選択 --</option>
+              <option>USER</option><option>CHATGPT</option><option>CODEX</option>
+              <option>GEMINI</option><option>CLAUDE</option><option>COPILOT</option><option>GROK</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">TO</label>
+            <div class="field-inline">
+              <select id="fieldTo" onchange="if(this.value)document.getElementById('fieldToCustom').value=''">
+                <option value="">-- 選択 --</option>
+                <option>USER</option><option>CHATGPT</option><option>CODEX</option>
+                <option>GEMINI</option><option>CLAUDE</option><option>COPILOT</option><option>GROK</option>
+              </select>
+              <input id="fieldToCustom" type="text" placeholder="カスタム" oninput="if(this.value)document.getElementById('fieldTo').value=''">
+            </div>
+          </div>
+          <div>
+            <label class="field-label">TYPE</label>
+            <select id="fieldType">
+              <option value="">-- 選択 --</option>
+              <option>QUESTION</option><option>ANSWER</option><option>REVIEW</option><option>CRITIQUE</option>
+              <option>IMPLEMENTATION</option><option>PROPOSAL</option><option>IDEA</option>
+              <option>DECISION</option><option>SUMMARY</option><option>TASK</option><option>REPORT</option><option>META</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">PRIORITY</label>
+            <select id="fieldPriority">
+              <option value="">-- 選択 --</option>
+              <option>LOW</option><option selected>NORMAL</option><option>HIGH</option><option>URGENT</option>
+            </select>
+          </div>
+          <div style="grid-column:1/-1">
+            <label class="field-label">SUBJECT</label>
+            <input id="fieldSubject" type="text" placeholder="件名を入力...">
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveMessage()">&#128190; ログに保存</button>
+          <button class="btn btn-success" onclick="generatePrompt()">&#9889; 次プロンプト生成</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="promptSection" style="display:none">
+      <div class="prompt-card visible">
+        <div class="prompt-card-header">
+          <span class="prompt-card-label">&#10022; 生成されたプロンプト</span>
+          <button class="btn btn-success btn-sm" onclick="copyPrompt()">&#128203; コピー</button>
+        </div>
+        <pre class="prompt-body" id="promptBox"></pre>
+      </div>
+    </div>
+
+    <div id="detailSection" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background:#FFF7ED">&#128232;</div>
+          <div>
+            <div class="card-title">メッセージ詳細</div>
+            <div class="card-subtitle" id="detailMsgId"></div>
+          </div>
+          <div style="margin-left:auto">
+            <button class="btn btn-ghost btn-xs" onclick="document.getElementById('detailSection').style.display='none'">&#10005;</button>
+          </div>
+        </div>
+        <div class="detail-card visible">
+          <div class="detail-meta" id="detailMetaContent"></div>
+          <div class="detail-body-content" id="detailBodyContent"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var messages=[];var selectedMsgId=null;var parsedData={};var debounceTimer=null;
+function init(){messages=loadMessages();renderLog()}
+function loadMessages(){try{return JSON.parse(localStorage.getItem("aimp_messages")||"[]")}catch(e){return[]}}
+function saveMessages(){localStorage.setItem("aimp_messages",JSON.stringify(messages))}
+function nextMsgId(){var nums=messages.map(function(m){var match=m.MESSAGE_ID&&m.MESSAGE_ID.match(/(\d+)$/);return match?parseInt(match[1]):0});var max=nums.length?Math.max.apply(null,nums):0;return"MSG-"+String(max+1).padStart(4,"0")}
+function nextThreadId(){var ids=[...new Set(messages.map(function(m){return m.THREAD_ID}).filter(Boolean))];var nums=ids.map(function(t){var m=t.match(/(\d+)$/);return m?parseInt(m[1]):0});var max=nums.length?Math.max.apply(null,nums):0;return"THREAD-"+String(max+1).padStart(4,"0")}
+function parseMessage(){var raw=document.getElementById("pasteArea").value.trim();if(!raw)return;parsedData=parseAIMP(raw);applyParsedToFields(parsedData);renderParseResult(parsedData)}
+function autoParseDebounce(){clearTimeout(debounceTimer);debounceTimer=setTimeout(function(){var raw=document.getElementById("pasteArea").value.trim();if(raw.includes("FROM:")||raw.includes("MESSAGE_ID:")){parsedData=parseAIMP(raw);applyParsedToFields(parsedData);renderParseResult(parsedData)}},600)}
+function parseAIMP(text){var result={};var singleFields=["MESSAGE_ID","THREAD_ID","FROM","TO","TYPE","PRIORITY","SUBJECT"];singleFields.forEach(function(field){var re=new RegExp("^"+field+":\\s*(.*)$","m");var m=text.match(re);if(m&&m[1].trim())result[field]=m[1].trim()});result.REASON=extractBlock(text,"REASON",["BODY"]);result.BODY=extractBlock(text,"BODY",[]);result._raw=text;return result}
+function extractBlock(text,fieldName,stopFields){var startRe=new RegExp("^"+fieldName+":\\s*$","m");var startMatch=startRe.exec(text);if(!startMatch){var inlineRe=new RegExp("^"+fieldName+":\\s*(.+)$","m");var inlineM=inlineRe.exec(text);if(inlineM)return inlineM[1].trim();return""}var content=text.slice(startMatch.index+startMatch[0].length);stopFields.forEach(function(stop){var stopRe=new RegExp("^"+stop+":","m");var stopM=stopRe.exec(content);if(stopM)content=content.slice(0,stopM.index)});return content.trim()}
+function applyParsedToFields(d){var AIs=["USER","CHATGPT","CODEX","GEMINI","CLAUDE","COPILOT","GROK"];if(d.FROM&&AIs.includes(d.FROM))setSelect("fieldFrom",d.FROM);if(d.TO){var toVal=d.TO.split(",")[0].trim();if(AIs.includes(toVal)){setSelect("fieldTo",toVal);document.getElementById("fieldToCustom").value=""}else{document.getElementById("fieldToCustom").value=d.TO}}if(d.TYPE)setSelect("fieldType",d.TYPE);if(d.PRIORITY)setSelect("fieldPriority",d.PRIORITY);if(d.SUBJECT)document.getElementById("fieldSubject").value=d.SUBJECT}
+function setSelect(id,val){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val){sel.value=val;return}}}
+function renderParseResult(d){var card=document.getElementById("parseResult");var body=document.getElementById("parseTableBody");var fields=["MESSAGE_ID","THREAD_ID","FROM","TO","TYPE","PRIORITY","SUBJECT","REASON","BODY"];var autoFields=(!d.MESSAGE_ID?["MESSAGE_ID"]:[]).concat(!d.THREAD_ID?["THREAD_ID"]:[]);var html="";fields.forEach(function(f){var val=d[f]||"";if(val.length>60)val=val.substring(0,60)+"...";var isAuto=autoFields.includes(f);html+="<span class=\"parse-key\">"+f+"</span><span class=\"parse-val\">"+(val?escapeHtml(val):"<span style=\"color:var(--text-3)\">-</span>")+(isAuto?" <span class=\"parse-auto-tag\">自動</span>":"")+"</span>"});body.innerHTML=html;card.classList.add("visible")}
+function saveMessage(){var raw=document.getElementById("pasteArea").value.trim();var from=document.getElementById("fieldFrom").value;var to=document.getElementById("fieldToCustom").value||document.getElementById("fieldTo").value;var type=document.getElementById("fieldType").value;var priority=document.getElementById("fieldPriority").value;var subject=document.getElementById("fieldSubject").value;if(!from){showToast("FROMを選択してください","error");return}if(!to){showToast("TOを選択してください","error");return}var msg={MESSAGE_ID:parsedData.MESSAGE_ID||nextMsgId(),THREAD_ID:parsedData.THREAD_ID||nextThreadId(),FROM:from,TO:to,TYPE:type||parsedData.TYPE||"META",PRIORITY:priority||parsedData.PRIORITY||"NORMAL",SUBJECT:subject||parsedData.SUBJECT||"(件名なし)",REASON:parsedData.REASON||"",BODY:parsedData.BODY||raw,_raw:raw,_savedAt:new Date().toISOString()};messages.push(msg);saveMessages();renderLog();showToast("保存しました: "+msg.MESSAGE_ID,"success");clearCompose()}
+function renderLog(){var container=document.getElementById("logList");if(!messages.length){container.innerHTML="<div class=\"empty-state\"><div class=\"empty-state-icon\">&#128269;</div><div>まだログがありません</div></div>";return}var threads={};messages.forEach(function(msg){var tid=msg.THREAD_ID||"UNKNOWN";if(!threads[tid])threads[tid]=[];threads[tid].push(msg)});var html="";Object.entries(threads).forEach(function(entry){var tid=entry[0];var msgs=entry[1];html+="<div class=\"thread-group\"><div class=\"thread-header\" onclick=\"toggleThread('"+tid+"',this)\"><span class=\"thread-chevron open\">&#9658;</span><span class=\"thread-label\">"+tid+"</span><span class=\"thread-count\">"+msgs.length+"</span></div><div class=\"thread-messages\" id=\"thread-"+tid+"\">";msgs.forEach(function(msg){var sel=msg.MESSAGE_ID===selectedMsgId?" selected":"";var toAIs=msg.TO.split(",").map(function(s){return s.trim()}).filter(Boolean);var toBadges=toAIs.map(function(ai){return"<span class=\"ai-badge ai-"+ai+"\">"+ai+"</span>"}).join(" ");html+="<div class=\"log-item"+sel+"\" onclick=\"selectMessage('"+msg.MESSAGE_ID+"')\"><div class=\"log-dot\"></div><div class=\"log-meta\"><div class=\"log-route\"><span class=\"ai-badge ai-"+msg.FROM+"\">"+msg.FROM+"</span><span class=\"log-arrow\">&rarr;</span>"+toBadges+"<span class=\"log-type-chip\">"+msg.TYPE+"</span></div><div class=\"log-subject\">"+escapeHtml(msg.SUBJECT)+"</div><div class=\"log-id\">"+msg.MESSAGE_ID+"</div></div></div>"});html+="</div></div>"});container.innerHTML=html}
+function toggleThread(tid,el){var msgs=document.getElementById("thread-"+tid);var chev=el.querySelector(".thread-chevron");if(msgs)msgs.classList.toggle("collapsed");if(chev)chev.classList.toggle("open")}
+function selectMessage(msgId){selectedMsgId=msgId;var msg=messages.find(function(m){return m.MESSAGE_ID===msgId});if(!msg)return;renderLog();var metaEl=document.getElementById("detailMetaContent");var bodyEl=document.getElementById("detailBodyContent");var idEl=document.getElementById("detailMsgId");var section=document.getElementById("detailSection");var header=["MESSAGE_ID: "+msg.MESSAGE_ID,"THREAD_ID:  "+msg.THREAD_ID,"FROM:       "+msg.FROM,"TO:         "+msg.TO,"TYPE:       "+msg.TYPE,"PRIORITY:   "+msg.PRIORITY,"SUBJECT:    "+msg.SUBJECT,msg.REASON?"\nREASON:\n"+msg.REASON:""].filter(Boolean).join("\n");idEl.textContent=msg.MESSAGE_ID+" - "+new Date(msg._savedAt).toLocaleString("ja-JP");metaEl.textContent=header;bodyEl.textContent=msg.BODY||"(本文なし)";section.style.display="block";section.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function generatePrompt(){var baseMsg=selectedMsgId?messages.find(function(m){return m.MESSAGE_ID===selectedMsgId}):null;if(!baseMsg&&messages.length)baseMsg=messages[messages.length-1];if(!baseMsg){showToast("ログを選択するかメッセージを保存してください","error");return}var toAIs=baseMsg.TO.split(",").map(function(s){return s.trim()}).filter(Boolean);var nextFrom=toAIs[0]||"USER";var prompt=buildPrompt(baseMsg,nextMsgId(),baseMsg.THREAD_ID,nextFrom);document.getElementById("promptBox").textContent=prompt;var sec=document.getElementById("promptSection");sec.style.display="block";sec.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function buildPrompt(refMsg,newMsgId,threadId,nextFrom){return"MESSAGE_ID: "+newMsgId+"\nTHREAD_ID: "+threadId+"\nFROM: "+nextFrom+"\nTO: \nTYPE: \nPRIORITY: NORMAL\nSUBJECT: Re: "+refMsg.SUBJECT+"\n\nREASON:\n[ここに理由を記入]\n\nBODY:\n[ここに本文を記入]\n\n---\nあなたは "+nextFrom+" です。\n以下のメッセージ ("+refMsg.MESSAGE_ID+") に返信してください。\n返信時は上のAIMPヘッダーを必ず含めてください。\nTO と TYPE を自分で判断して記入してください。\n\n--- 受信メッセージ ---\nMESSAGE_ID: "+refMsg.MESSAGE_ID+"\nFROM: "+refMsg.FROM+"\nTO: "+refMsg.TO+"\nTYPE: "+refMsg.TYPE+"\nSUBJECT: "+refMsg.SUBJECT+(refMsg.REASON?"\n\nREASON:\n"+refMsg.REASON:"")+"\n\nBODY:\n"+(refMsg.BODY||"(本文なし)")+"\n---"}
+function copyPrompt(){copyToClipboard(document.getElementById("promptBox").textContent)}
+function exportJSON(){var blob=new Blob([JSON.stringify(messages,null,2)],{type:"application/json"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="aimp-export-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(url);showToast("エクスポート完了","success")}
+function importJSON(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var imported=JSON.parse(e.target.result);if(!Array.isArray(imported)){showToast("不正なJSONです","error");return}messages=imported;saveMessages();renderLog();showToast("インポート完了 ("+imported.length+"件)","success")}catch(err){showToast("JSONのパースに失敗しました","error")}};reader.readAsText(file);event.target.value=""}
+function clearCompose(){document.getElementById("pasteArea").value="";document.getElementById("parseResult").classList.remove("visible");document.getElementById("promptSection").style.display="none";document.getElementById("detailSection").style.display="none";parsedData={};["fieldFrom","fieldTo","fieldType","fieldPriority"].forEach(function(id){document.getElementById(id).value=""});document.getElementById("fieldToCustom").value="";document.getElementById("fieldSubject").value=""}
+function clearAll(){if(!confirm("localStorageのデータを全削除します。よろしいですか？"))return;localStorage.removeItem("aimp_messages");messages=[];selectedMsgId=null;renderLog();clearCompose();showToast("全データを削除しました","error")}
+function copyToClipboard(text){if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){showToast("コピーしました","success")})}else{var ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);showToast("コピーしました","success")}}
+var toastTimer=null;
+function showToast(msg,type){var t=document.getElementById("toast");t.textContent=msg;t.className="toast"+(type?" "+type:"");t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove("show")},2600)}
+function escapeHtml(str){if(!str)return"";return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+window.AIMPLauncher=function(){
+  var lastGenerated="";
+  function value(id){return document.getElementById(id).value.trim()}
+  function build(){
+    var to=value("launcherTo");
+    var type=value("launcherType");
+    var priority=value("launcherPriority");
+    var subject=value("launcherSubject");
+    var body=value("launcherBody");
+    if(!subject){showToast("SUBJECTを入力してください","error");return""}
+    if(!body){showToast("BODYを入力してください","error");return""}
+    return [
+      "MESSAGE_ID: "+nextMsgId(),
+      "THREAD_ID: "+nextThreadId(),
+      "FROM: USER",
+      "TO: "+to,
+      "TYPE: "+type,
+      "PRIORITY: "+priority,
+      "SUBJECT: "+subject,
+      "",
+      "REASON:",
+      "ユーザーから指定された宛先に依頼するため",
+      "",
+      "BODY:",
+      body
+    ].join("\n");
+  }
+  function publish(text){
+    lastGenerated=text;
+    document.getElementById("promptBox").textContent=text;
+    document.getElementById("pasteArea").value=text;
+    parsedData=parseAIMP(text);
+    applyParsedToFields(parsedData);
+    renderParseResult(parsedData);
+    var sec=document.getElementById("promptSection");
+    sec.style.display="block";
+    sec.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+  return {
+    generate:function(){
+      var text=build();
+      if(!text)return;
+      publish(text);
+      showToast("AIMPを生成しました","success");
+    },
+    copy:function(){
+      var text=build();
+      if(!text)return;
+      publish(text);
+      copyToClipboard(text);
+    },
+    save:function(){
+      var text=build();
+      if(!text)return;
+      publish(text);
+      saveMessage();
+    }
+  };
+}();
+init();
+</script>
+</body>
+</html>
