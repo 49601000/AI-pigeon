@@ -36,6 +36,7 @@
   --sans: "DM Sans", sans-serif;
   --display: "Sora", sans-serif;
   --sidebar-w: 300px;
+  --mobile-sidebar-w: min(86vw, 360px);
   --topbar-h: 56px;
 }
 
@@ -52,16 +53,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .topbar-spacer{flex:1}
 .topbar-actions{display:flex;align-items:center;gap:8px}
 .topbar-logo{display:flex;align-items:center;gap:10px}
+.action-label{display:inline}
+.mobile-sidebar-toggle{display:none}
 
 /* LAYOUT */
 .app-layout{flex:1;display:grid;grid-template-columns:var(--sidebar-w) 1fr;overflow:hidden;height:calc(100vh - var(--topbar-h))}
-@media(max-width:720px){.app-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}.sidebar{max-height:260px;border-right:none;border-bottom:1px solid var(--border)}}
 
 /* SIDEBAR */
 .sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .sidebar-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .sidebar-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
 .sidebar-body{flex:1;overflow-y:auto;padding:12px}
+.sidebar-close,.sidebar-resize-handle,.sidebar-backdrop{display:none}
 
 /* Project */
 .project-group{margin-bottom:12px}
@@ -104,6 +107,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 /* MAIN */
 .main{overflow-y:auto;padding:28px 32px;display:flex;flex-direction:column;gap:20px}
 @media(max-width:720px){.main{padding:16px}}
+.mobile-tabs{display:none}
+.mobile-tab{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-2);font-size:12px;font-weight:700;padding:9px 10px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
+.mobile-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(79,110,247,.24)}
 
 /* CARDS */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .18s;display:flex;flex-direction:column;max-height:calc(100vh - var(--topbar-h) - 56px)}
@@ -205,6 +211,60 @@ select option{background:var(--surface)}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
+
+@media(max-width:720px){
+  body{overflow:hidden}
+  .topbar{padding:0 12px;gap:10px}
+  .logo-name{font-size:13px}
+  .logo-version{font-size:9px}
+  .mobile-sidebar-toggle{display:inline-flex;padding:8px 10px}
+  .topbar-actions{gap:6px}
+  .topbar-actions .btn-sm{padding:7px 9px;font-size:11px}
+  .action-label{display:none}
+  .reply-mode-toggle{padding:6px 8px;font-size:11px}
+  .app-layout{display:block;height:calc(100dvh - var(--topbar-h));overflow:hidden}
+  .sidebar{
+    position:fixed;
+    top:var(--topbar-h);
+    bottom:0;
+    left:0;
+    width:var(--mobile-sidebar-w);
+    min-width:260px;
+    max-width:94vw;
+    border-right:1px solid var(--border);
+    border-bottom:none;
+    box-shadow:var(--shadow-lg);
+    z-index:240;
+    transform:translateX(calc(-100% - 16px));
+    transition:transform .22s ease;
+  }
+  body.sidebar-open .sidebar{transform:translateX(0)}
+  .sidebar-header{padding:14px 14px 10px}
+  .sidebar-close{display:inline-flex}
+  .sidebar-resize-handle{display:block;position:absolute;top:0;right:-10px;width:20px;height:100%;cursor:ew-resize;touch-action:none}
+  .sidebar-resize-handle::after{content:"";position:absolute;top:42%;right:5px;width:4px;height:64px;border-radius:8px;background:#C7D2FE;box-shadow:0 0 0 1px rgba(79,110,247,.18)}
+  .sidebar-backdrop{display:block;position:fixed;inset:var(--topbar-h) 0 0 0;background:rgba(26,29,46,.28);opacity:0;pointer-events:none;z-index:230;transition:opacity .22s ease}
+  body.sidebar-open .sidebar-backdrop{opacity:1;pointer-events:auto}
+  .main{height:calc(100dvh - var(--topbar-h));padding:12px;gap:12px;overflow-y:auto}
+  .mobile-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;position:sticky;top:0;z-index:120;background:var(--bg);padding-bottom:2px}
+  .mobile-tab{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .compose-panel{display:none}
+  .compose-panel.active{display:flex;max-height:calc(100dvh - var(--topbar-h) - 72px)}
+  .card-header{padding:13px 14px 10px}
+  .card-body{padding:14px;gap:14px}
+  .card-subtitle{display:none}
+  textarea{min-height:142px}
+  .launcher-body textarea{min-height:170px}
+  .template-save-row{display:grid;grid-template-columns:1fr auto}
+  .template-save-row input{max-width:none}
+  .field-inline{flex-direction:column}
+  .parse-table{grid-template-columns:78px 1fr}
+  .toast{left:12px;right:12px;bottom:14px;justify-content:center}
+}
+@media(max-width:480px){
+  .topbar-logo > div{display:none}
+  .topbar-actions .btn-sm{width:34px;padding-left:0;padding-right:0}
+}
 </style>
 </head>
 <body>
@@ -218,13 +278,14 @@ select option{background:var(--surface)}
     </div>
   </div>
   <div class="topbar-spacer"></div>
+  <button class="btn btn-outline btn-sm mobile-sidebar-toggle" onclick="toggleSidebar()" aria-label="プロジェクト/スレッドを開く">&#9776;</button>
   <div class="topbar-actions">
     <label class="reply-mode-toggle" title="生成プロンプトにAIMP形式で返答する指示を追加します">
       <input id="forceAimpReply" type="checkbox" onchange="setForceAimpReply(this.checked)">AIMP返信
     </label>
-    <button class="btn btn-outline btn-sm" onclick="exportJSON()">&#8679; Export</button>
-    <label class="btn btn-outline btn-sm" style="cursor:pointer">&#8681; Import<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
-    <button class="btn btn-danger-outline btn-sm" onclick="clearAll()">&#9888; 全削除</button>
+    <button class="btn btn-outline btn-sm" onclick="exportJSON()">&#8679; <span class="action-label">Export</span></button>
+    <label class="btn btn-outline btn-sm" style="cursor:pointer">&#8681; <span class="action-label">Import</span><input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
+    <button class="btn btn-danger-outline btn-sm" onclick="clearAll()">&#9888; <span class="action-label">全削除</span></button>
   </div>
 </header>
 
@@ -235,15 +296,24 @@ select option{background:var(--surface)}
       <div class="btn-row">
         <button class="btn btn-ghost btn-xs" onclick="addProject()">&#65291;</button>
         <button class="btn btn-ghost btn-xs" onclick="renderLog()">&#8635;</button>
+        <button class="btn btn-ghost btn-xs sidebar-close" onclick="closeSidebar()" aria-label="閉じる">&#10005;</button>
       </div>
     </div>
     <div class="sidebar-body" id="logList">
       <div class="empty-state"><div class="empty-state-icon">&#128269;</div><div>まだログがありません</div></div>
     </div>
+    <div class="sidebar-resize-handle" onpointerdown="startSidebarResize(event)" aria-hidden="true"></div>
   </aside>
+  <div class="sidebar-backdrop" onclick="closeSidebar()"></div>
 
   <main class="main">
-    <div class="card">
+    <div class="mobile-tabs" role="tablist" aria-label="入力パネル">
+      <button class="mobile-tab active" data-tab-target="launcherPanel" onclick="switchMobileTab('launcherPanel')" role="tab" aria-selected="true">新規依頼</button>
+      <button class="mobile-tab" data-tab-target="messagePanel" onclick="switchMobileTab('messagePanel')" role="tab" aria-selected="false">入力</button>
+      <button class="mobile-tab" data-tab-target="fieldsPanel" onclick="switchMobileTab('fieldsPanel')" role="tab" aria-selected="false">確認</button>
+    </div>
+
+    <div class="card compose-panel active" id="launcherPanel">
       <div class="card-header">
         <div class="card-header-icon" style="background:#E6FAF5">&#128640;</div>
         <div>
@@ -309,7 +379,7 @@ select option{background:var(--surface)}
       </div>
     </div>
 
-    <div class="card">
+    <div class="card compose-panel" id="messagePanel">
       <div class="card-header">
         <div class="card-header-icon" style="background:#EEF1FE">&#128203;</div>
         <div>
@@ -333,7 +403,7 @@ select option{background:var(--surface)}
       </div>
     </div>
 
-    <div class="card">
+    <div class="card compose-panel" id="fieldsPanel">
       <div class="card-header">
         <div class="card-header-icon" style="background:#E6FAF5">&#9881;&#65039;</div>
         <div>
@@ -430,6 +500,7 @@ select option{background:var(--surface)}
 
 <script>
 var messages=[];var projects=[];var selectedMsgId=null;var parsedData={};var debounceTimer=null;
+var mobileSidebarResize=null;
 var DEFAULT_PROJECT_ID="0001";
 var ROUTE_AIS=["CODEX","GEMINI","CHATGPT","CLAUDE"];
 var DEFAULT_AI_TEMPLATES=[
@@ -438,7 +509,48 @@ var DEFAULT_AI_TEMPLATES=[
   {id:"tpl-chatgpt",name:"CHATGPT",to:"CHATGPT",type:"PROPOSAL",reason:"要件整理・仕様化・プロンプト生成をCHATGPTに依頼するため"},
   {id:"tpl-claude",name:"CLAUDE",to:"CLAUDE",type:"REVIEW",reason:"品質確認・保守性レビュー・設計レビューをCLAUDEに依頼するため"}
 ];
-function init(){messages=loadMessages();projects=loadProjects();ensureProjectCoverage();renderReplyMode();renderProjectSelects();renderTemplates();renderLog()}
+function init(){restoreSidebarWidth();messages=loadMessages();projects=loadProjects();ensureProjectCoverage();renderReplyMode();renderProjectSelects();renderTemplates();renderLog();switchMobileTab("launcherPanel")}
+function isMobileView(){return window.matchMedia&&window.matchMedia("(max-width:720px)").matches}
+function switchMobileTab(panelId){
+  var mobile=isMobileView();
+  document.querySelectorAll(".compose-panel").forEach(function(panel){var active=panel.id===panelId;panel.classList.toggle("active",active);panel.setAttribute("aria-hidden",mobile&&!active?"true":"false")});
+  document.querySelectorAll(".mobile-tab").forEach(function(tab){var active=tab.getAttribute("data-tab-target")===panelId;tab.classList.toggle("active",active);tab.setAttribute("aria-selected",active?"true":"false")});
+}
+function openSidebar(){document.body.classList.add("sidebar-open")}
+function closeSidebar(){document.body.classList.remove("sidebar-open")}
+function toggleSidebar(){document.body.classList.toggle("sidebar-open")}
+function restoreSidebarWidth(){
+  var saved=parseInt(localStorage.getItem("aimp_mobile_sidebar_w")||"",10);
+  if(!saved)return;
+  var max=Math.floor(Math.min(window.innerWidth*.94,520));
+  var width=Math.max(260,Math.min(max,saved));
+  document.documentElement.style.setProperty("--mobile-sidebar-w",width+"px");
+}
+function startSidebarResize(event){
+  if(!isMobileView())return;
+  event.preventDefault();
+  var sidebar=document.querySelector(".sidebar");
+  if(!sidebar)return;
+  mobileSidebarResize={startX:event.clientX,startWidth:sidebar.getBoundingClientRect().width};
+  document.addEventListener("pointermove",resizeSidebar);
+  document.addEventListener("pointerup",stopSidebarResize,{once:true});
+}
+function resizeSidebar(event){
+  if(!mobileSidebarResize)return;
+  var max=Math.floor(Math.min(window.innerWidth*.94,520));
+  var next=mobileSidebarResize.startWidth+(event.clientX-mobileSidebarResize.startX);
+  var width=Math.max(260,Math.min(max,next));
+  document.documentElement.style.setProperty("--mobile-sidebar-w",Math.round(width)+"px");
+}
+function stopSidebarResize(){
+  if(!mobileSidebarResize)return;
+  mobileSidebarResize=null;
+  var raw=getComputedStyle(document.documentElement).getPropertyValue("--mobile-sidebar-w");
+  var width=parseInt(raw,10);
+  if(width)localStorage.setItem("aimp_mobile_sidebar_w",String(width));
+  document.removeEventListener("pointermove",resizeSidebar);
+}
+window.addEventListener("resize",function(){restoreSidebarWidth();if(!isMobileView())closeSidebar();var activeTab=document.querySelector(".mobile-tab.active");switchMobileTab(activeTab?activeTab.getAttribute("data-tab-target"):"launcherPanel")});
 function loadMessages(){try{return JSON.parse(localStorage.getItem("aimp_messages")||"[]")}catch(e){return[]}}
 function saveMessages(){localStorage.setItem("aimp_messages",JSON.stringify(messages))}
 function loadProjects(){try{var loaded=JSON.parse(localStorage.getItem("aimp_projects")||"[]");return Array.isArray(loaded)&&loaded.length?loaded:defaultProjects()}catch(e){return defaultProjects()}}
@@ -456,7 +568,7 @@ function renderReplyMode(){var el=document.getElementById("forceAimpReply");if(e
 function setForceAimpReply(enabled){localStorage.setItem("aimp_force_reply",enabled?"true":"false");showToast("AIMP返信モード: "+(enabled?"ON":"OFF"),enabled?"success":"")}
 function nextMsgId(){var nums=messages.map(function(m){var match=m.MESSAGE_ID&&m.MESSAGE_ID.match(/(\d+)$/);return match?parseInt(match[1]):0});var max=nums.length?Math.max.apply(null,nums):0;return"MSG-"+String(max+1).padStart(4,"0")}
 function nextThreadId(){var ids=[...new Set(messages.map(function(m){return m.THREAD_ID}).filter(Boolean))];var nums=ids.map(function(t){var m=t.match(/(\d+)$/);return m?parseInt(m[1]):0});var max=nums.length?Math.max.apply(null,nums):0;return"THREAD-"+String(max+1).padStart(4,"0")}
-function parseMessage(){var raw=document.getElementById("pasteArea").value.trim();if(!raw)return;parsedData=parseAIMP(raw);applyParsedToFields(parsedData);renderParseResult(parsedData)}
+function parseMessage(){var raw=document.getElementById("pasteArea").value.trim();if(!raw)return;parsedData=parseAIMP(raw);applyParsedToFields(parsedData);renderParseResult(parsedData);if(isMobileView())switchMobileTab("fieldsPanel")}
 function autoParseDebounce(){clearTimeout(debounceTimer);debounceTimer=setTimeout(function(){var raw=document.getElementById("pasteArea").value.trim();if(raw.includes("FROM:")||raw.includes("MESSAGE_ID:")){parsedData=parseAIMP(raw);applyParsedToFields(parsedData);renderParseResult(parsedData)}},600)}
 function parseAIMP(text){var result={};var singleFields=["PROJECT_ID","MESSAGE_ID","THREAD_ID","FROM","TO","TYPE","PRIORITY","SUBJECT"];singleFields.forEach(function(field){var re=new RegExp("^"+field+":\\s*(.*)$","m");var m=text.match(re);if(m&&(m[1].trim()||field==="SUBJECT"))result[field]=m[1].trim()});result.REASON=extractBlock(text,"REASON",["BODY"]);result.BODY=extractBlock(text,"BODY",[]);result._raw=text;return result}
 function extractBlock(text,fieldName,stopFields){var startRe=new RegExp("^"+fieldName+":\\s*$","m");var startMatch=startRe.exec(text);if(!startMatch){var inlineRe=new RegExp("^"+fieldName+":\\s*(.+)$","m");var inlineM=inlineRe.exec(text);if(inlineM)return inlineM[1].trim();return""}var content=text.slice(startMatch.index+startMatch[0].length);stopFields.forEach(function(stop){var stopRe=new RegExp("^"+stop+":","m");var stopM=stopRe.exec(content);if(stopM)content=content.slice(0,stopM.index)});return content.trim()}
@@ -469,12 +581,12 @@ function saveMessage(){var raw=document.getElementById("pasteArea").value.trim()
 function renderLog(){var container=document.getElementById("logList");if(!messages.length){container.innerHTML="<div class=\"empty-state\"><div class=\"empty-state-icon\">&#128269;</div><div>まだログがありません</div></div>";return}var grouped={};messages.forEach(function(msg){var pid=getMsgProjectId(msg);if(!grouped[pid])grouped[pid]={count:0,threads:{}};grouped[pid].count++;var tid=msg.THREAD_ID||"UNKNOWN";if(!grouped[pid].threads[tid])grouped[pid].threads[tid]=[];grouped[pid].threads[tid].push(msg)});var html="";projects.forEach(function(project){var group=grouped[project.project_id];if(!group)return;var projectDomId="project-"+project.project_id;html+="<div class=\"project-group\"><div class=\"project-header\" onclick=\"toggleProject('"+project.project_id+"',this)\"><span class=\"thread-chevron open\">&#9658;</span><span class=\"project-label\">"+escapeHtml(project.project_name)+"</span><span class=\"project-count\">"+group.count+"</span></div><div class=\"project-threads\" id=\""+projectDomId+"\">";Object.entries(group.threads).forEach(function(entry){var tid=entry[0];var msgs=entry[1];var threadDomId="thread-"+project.project_id+"-"+tid;html+="<div class=\"thread-group\"><div class=\"thread-header\" onclick=\"toggleThread('"+threadDomId+"',this)\"><span class=\"thread-chevron open\">&#9658;</span><span class=\"thread-label\">"+escapeHtml(tid)+"</span><span class=\"thread-count\">"+msgs.length+"</span></div><div class=\"thread-messages\" id=\""+threadDomId+"\">";msgs.forEach(function(msg){var sel=msg.MESSAGE_ID===selectedMsgId?" selected":"";var toAIs=String(msg.TO||"").split(",").map(function(s){return s.trim()}).filter(Boolean);var toBadges=toAIs.map(function(ai){return"<span class=\"ai-badge ai-"+ai+"\">"+escapeHtml(ai)+"</span>"}).join(" ");var routeButtons=ROUTE_AIS.map(function(ai){return"<button class=\"quick-route-btn\" onclick=\"quickRoute('"+msg.MESSAGE_ID+"','"+ai+"',event)\">&rarr; "+ai+"</button>"}).join("");html+="<div class=\"log-item"+sel+"\" onclick=\"selectMessage('"+msg.MESSAGE_ID+"')\"><div class=\"log-dot\"></div><div class=\"log-meta\"><div class=\"log-route\"><span class=\"ai-badge ai-"+msg.FROM+"\">"+escapeHtml(msg.FROM)+"</span><span class=\"log-arrow\">&rarr;</span>"+toBadges+"<span class=\"log-type-chip\">"+escapeHtml(msg.TYPE)+"</span></div><div class=\"log-subject\">"+escapeHtml(displaySubject(msg.SUBJECT))+"</div><div class=\"log-id\">"+escapeHtml(msg.MESSAGE_ID)+"</div><div class=\"quick-route-row\">"+routeButtons+"</div></div></div>"});html+="</div></div>"});html+="</div></div>"});container.innerHTML=html}
 function toggleProject(projectId,el){var threads=document.getElementById("project-"+projectId);var chev=el.querySelector(".thread-chevron");if(threads)threads.classList.toggle("collapsed");if(chev)chev.classList.toggle("open")}
 function toggleThread(domId,el){var msgs=document.getElementById(domId);var chev=el.querySelector(".thread-chevron");if(msgs)msgs.classList.toggle("collapsed");if(chev)chev.classList.toggle("open")}
-function selectMessage(msgId){selectedMsgId=msgId;var msg=messages.find(function(m){return m.MESSAGE_ID===msgId});if(!msg)return;renderLog();var metaEl=document.getElementById("detailMetaContent");var bodyEl=document.getElementById("detailBodyContent");var idEl=document.getElementById("detailMsgId");var section=document.getElementById("detailSection");var pid=getMsgProjectId(msg);var header=["PROJECT:    "+projectName(pid)+" ("+pid+")","MESSAGE_ID: "+msg.MESSAGE_ID,"THREAD_ID:  "+msg.THREAD_ID,"FROM:       "+msg.FROM,"TO:         "+msg.TO,"TYPE:       "+msg.TYPE,"PRIORITY:   "+msg.PRIORITY,"SUBJECT:    "+msg.SUBJECT,msg.REASON?"\nREASON:\n"+msg.REASON:""].filter(Boolean).join("\n");idEl.textContent=msg.MESSAGE_ID+" - "+new Date(msg._savedAt).toLocaleString("ja-JP");metaEl.textContent=header;bodyEl.textContent=msg.BODY||"(本文なし)";section.style.display="block";section.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function selectMessage(msgId){selectedMsgId=msgId;var msg=messages.find(function(m){return m.MESSAGE_ID===msgId});if(!msg)return;renderLog();var metaEl=document.getElementById("detailMetaContent");var bodyEl=document.getElementById("detailBodyContent");var idEl=document.getElementById("detailMsgId");var section=document.getElementById("detailSection");var pid=getMsgProjectId(msg);var header=["PROJECT:    "+projectName(pid)+" ("+pid+")","MESSAGE_ID: "+msg.MESSAGE_ID,"THREAD_ID:  "+msg.THREAD_ID,"FROM:       "+msg.FROM,"TO:         "+msg.TO,"TYPE:       "+msg.TYPE,"PRIORITY:   "+msg.PRIORITY,"SUBJECT:    "+msg.SUBJECT,msg.REASON?"\nREASON:\n"+msg.REASON:""].filter(Boolean).join("\n");idEl.textContent=msg.MESSAGE_ID+" - "+new Date(msg._savedAt).toLocaleString("ja-JP");metaEl.textContent=header;bodyEl.textContent=msg.BODY||"(本文なし)";section.style.display="block";if(isMobileView())closeSidebar();section.scrollIntoView({behavior:"smooth",block:"nearest"})}
 function generatePrompt(){var baseMsg=selectedMsgId?messages.find(function(m){return m.MESSAGE_ID===selectedMsgId}):null;if(!baseMsg&&messages.length)baseMsg=messages[messages.length-1];if(!baseMsg){showToast("ログを選択するかメッセージを保存してください","error");return}var toAIs=baseMsg.TO.split(",").map(function(s){return s.trim()}).filter(Boolean);var nextFrom=toAIs[0]||"USER";var prompt=buildPrompt(baseMsg,nextMsgId(),baseMsg.THREAD_ID,nextFrom,loadForceAimpReply());document.getElementById("promptBox").textContent=prompt;var sec=document.getElementById("promptSection");sec.style.display="block";sec.scrollIntoView({behavior:"smooth",block:"nearest"})}
 function formatReceivedMessage(refMsg,refSubject){return"--- 受信メッセージ ---\nMESSAGE_ID: "+refMsg.MESSAGE_ID+"\nFROM: "+refMsg.FROM+"\nTO: "+refMsg.TO+"\nTYPE: "+refMsg.TYPE+"\nSUBJECT: "+refSubject+(refMsg.REASON?"\n\nREASON:\n"+refMsg.REASON:"")+"\n\nBODY:\n"+(refMsg.BODY||"(本文なし)")+"\n---"}
 function routeTypeFor(targetAI){if(targetAI==="CODEX")return"IMPLEMENTATION";if(targetAI==="GEMINI"||targetAI==="CLAUDE")return"REVIEW";if(targetAI==="CHATGPT")return"PROPOSAL";return"TASK"}
 function buildQuickRoutePrompt(refMsg,targetAI){var refSubject=(refMsg.SUBJECT||"").trim();var subject=refSubject?"Route: "+refSubject:"Route: "+refMsg.MESSAGE_ID;var lines=["MESSAGE_ID: "+refMsg.MESSAGE_ID,"THREAD_ID: "+(refMsg.THREAD_ID||nextThreadId()),"FROM: USER","TO: "+targetAI,"TYPE: "+routeTypeFor(targetAI),"PRIORITY: NORMAL","SUBJECT: "+subject,"","REASON:","保存済みメッセージ "+refMsg.MESSAGE_ID+" を "+targetAI+" に転送するため","","BODY:","以下の参照メッセージを読み、あなたの担当観点で回答してください。","","参照元 MESSAGE_ID: "+refMsg.MESSAGE_ID,"参照元 THREAD_ID: "+(refMsg.THREAD_ID||""),"",formatReceivedMessage(refMsg,refSubject)];if(loadForceAimpReply()){lines.push("","--- 返信指示 ---","あなたは "+targetAI+" です。必ずAIMP形式で返答してください。自然文だけの回答は禁止です。","出力は MESSAGE_ID から始め、MESSAGE_ID / THREAD_ID / FROM / TO / TYPE / PRIORITY / SUBJECT / REASON / BODY をこの順序で含めてください。")}return lines.join("\n")}
-function quickRoute(msgId,targetAI,event){if(event){event.stopPropagation();event.preventDefault()}var msg=messages.find(function(m){return m.MESSAGE_ID===msgId});if(!msg)return;selectedMsgId=msgId;renderLog();var prompt=buildQuickRoutePrompt(msg,targetAI);document.getElementById("promptBox").textContent=prompt;document.getElementById("pasteArea").value=prompt;parsedData=parseAIMP(prompt);parsedData.PROJECT_ID=getMsgProjectId(msg);applyParsedToFields(parsedData);renderParseResult(parsedData);var sec=document.getElementById("promptSection");sec.style.display="block";sec.scrollIntoView({behavior:"smooth",block:"nearest"});copyToClipboard(prompt)}
+function quickRoute(msgId,targetAI,event){if(event){event.stopPropagation();event.preventDefault()}var msg=messages.find(function(m){return m.MESSAGE_ID===msgId});if(!msg)return;selectedMsgId=msgId;renderLog();var prompt=buildQuickRoutePrompt(msg,targetAI);document.getElementById("promptBox").textContent=prompt;document.getElementById("pasteArea").value=prompt;parsedData=parseAIMP(prompt);parsedData.PROJECT_ID=getMsgProjectId(msg);applyParsedToFields(parsedData);renderParseResult(parsedData);var sec=document.getElementById("promptSection");sec.style.display="block";if(isMobileView()){closeSidebar();switchMobileTab("messagePanel")}sec.scrollIntoView({behavior:"smooth",block:"nearest"});copyToClipboard(prompt)}
 function buildPrompt(refMsg,newMsgId,threadId,nextFrom,forceAimp){var refSubject=(refMsg.SUBJECT||"").trim();if(!forceAimp){return"あなたは "+nextFrom+" です。\n以下のメッセージ ("+refMsg.MESSAGE_ID+") に通常の自然文で返信してください。\nAIMPヘッダーは付けないでください。\n\n"+formatReceivedMessage(refMsg,refSubject)}var shouldGenerateSubject=refMsg.FROM==="USER"&&!refSubject;var replySubject=shouldGenerateSubject?"":(refSubject?"Re: "+refSubject:"");var subjectInstruction=shouldGenerateSubject?"SUBJECT は受信メッセージの BODY を短く要約して自動生成してください。\n":"";return"MESSAGE_ID: "+newMsgId+"\nTHREAD_ID: "+threadId+"\nFROM: "+nextFrom+"\nTO: \nTYPE: \nPRIORITY: NORMAL\nSUBJECT: "+replySubject+"\n\nREASON:\n[ここに理由を記入]\n\nBODY:\n[ここに本文を記入]\n\n---\nあなたは "+nextFrom+" です。\n以下のメッセージ ("+refMsg.MESSAGE_ID+") に返信してください。\n"+subjectInstruction+"TO と TYPE を自分で判断して記入してください。\n\n--- 返信モード ---\n必ずAIMP形式で返答してください。自然文だけの回答は禁止です。\n出力は MESSAGE_ID から始め、以下の項目をこの順序で含めてください。\n  MESSAGE_ID:\n  THREAD_ID:\n  FROM:\n  TO:\n  TYPE:\n  PRIORITY:\n  SUBJECT:\n\n  REASON:\n\n  BODY:\n\n"+formatReceivedMessage(refMsg,refSubject)}
 function copyPrompt(){copyToClipboard(document.getElementById("promptBox").textContent)}
 function exportJSON(){var payload={projects:projects,messages:messages};var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="aimp-export-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(url);showToast("エクスポート完了","success")}
