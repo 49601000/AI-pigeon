@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-carrier-pigeon.png">
-<title>AIMP Hub v0.1</title>
+<title>AIMP Hub v0.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -63,6 +63,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .sidebar-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
 .sidebar-body{flex:1;overflow-y:auto;padding:12px}
 
+/* Project */
+.project-group{margin-bottom:12px}
+.project-header{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background .12s;user-select:none}
+.project-header:hover{background:var(--surface2)}
+.project-label{font-size:12px;font-weight:700;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project-count{font-size:10px;font-family:var(--mono);background:var(--surface2);color:var(--text-2);padding:1px 6px;border-radius:10px;font-weight:600}
+.project-threads{padding-left:6px}
+.project-threads.collapsed{display:none}
+
 /* Thread */
 .thread-group{margin-bottom:8px}
 .thread-header{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background .12s;user-select:none}
@@ -86,6 +95,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .log-subject{font-size:12px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
 .log-id{font-family:var(--mono);font-size:9px;color:var(--text-3)}
 .log-type-chip{font-family:var(--mono);font-size:9px;font-weight:600;padding:1px 5px;border-radius:4px;background:var(--surface2);color:var(--text-3);border:1px solid var(--border)}
+.quick-route-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.quick-route-btn{font-family:var(--mono);font-size:9px;padding:3px 5px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);cursor:pointer;line-height:1;transition:background .12s,border-color .12s,color .12s}
+.quick-route-btn:hover{background:var(--accent-lt);border-color:var(--accent);color:var(--accent)}
 .empty-state{text-align:center;padding:32px 16px;color:var(--text-3);font-size:12px}
 .empty-state-icon{font-size:28px;margin-bottom:8px}
 
@@ -114,10 +126,18 @@ select option{background:var(--surface)}
 .fields-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
 .field-inline{display:flex;gap:8px}
 .field-inline input,.field-inline select{flex:1;min-width:0}
+.template-panel{display:flex;flex-direction:column;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:12px}
+.template-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.template-btn{min-width:92px}
+.template-save-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.template-save-row input{max-width:220px;background:var(--surface)}
 .launcher-grid{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:12px}
 .launcher-from{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--mono);font-size:12px;font-weight:600;line-height:1.6;padding:10px 12px}
 .launcher-subject{grid-column:1/-1}
 .launcher-body textarea{min-height:150px}
+.launcher-reason textarea{min-height:88px}
+.reply-mode-toggle{display:inline-flex;align-items:center;gap:7px;background:var(--accent-lt);border:1px solid #C7D2FE;color:var(--accent);border-radius:var(--r-sm);padding:7px 10px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;user-select:none}
+.reply-mode-toggle input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
 @media(max-width:980px){.launcher-grid{grid-template-columns:repeat(2,minmax(140px,1fr))}}
 @media(max-width:560px){.launcher-grid{grid-template-columns:1fr}}
 
@@ -194,11 +214,14 @@ select option{background:var(--surface)}
     <div class="logo-icon">A</div>
     <div>
       <div class="logo-name">AIMP Hub</div>
-      <div class="logo-version">v0.1 &middot; AI Mail Protocol</div>
+      <div class="logo-version">v0.2 &middot; AI Mail Protocol</div>
     </div>
   </div>
   <div class="topbar-spacer"></div>
   <div class="topbar-actions">
+    <label class="reply-mode-toggle" title="生成プロンプトにAIMP形式で返答する指示を追加します">
+      <input id="forceAimpReply" type="checkbox" onchange="setForceAimpReply(this.checked)">AIMP返信
+    </label>
     <button class="btn btn-outline btn-sm" onclick="exportJSON()">&#8679; Export</button>
     <label class="btn btn-outline btn-sm" style="cursor:pointer">&#8681; Import<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
     <button class="btn btn-danger-outline btn-sm" onclick="clearAll()">&#9888; 全削除</button>
@@ -208,8 +231,11 @@ select option{background:var(--surface)}
 <div class="app-layout">
   <aside class="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-title">スレッドログ</span>
-      <button class="btn btn-ghost btn-xs" onclick="renderLog()">&#8635;</button>
+      <span class="sidebar-title">プロジェクト / スレッド</span>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-xs" onclick="addProject()">&#65291;</button>
+        <button class="btn btn-ghost btn-xs" onclick="renderLog()">&#8635;</button>
+      </div>
     </div>
     <div class="sidebar-body" id="logList">
       <div class="empty-state"><div class="empty-state-icon">&#128269;</div><div>まだログがありません</div></div>
@@ -226,7 +252,18 @@ select option{background:var(--surface)}
         </div>
       </div>
       <div class="card-body">
+        <div class="template-panel">
+          <div class="template-buttons" id="templateButtons"></div>
+          <div class="template-save-row">
+            <input id="templateName" type="text" placeholder="テンプレ名">
+            <button class="btn btn-outline btn-sm" onclick="saveCurrentTemplate()">テンプレ追加</button>
+          </div>
+        </div>
         <div class="launcher-grid">
+          <div>
+            <label class="field-label">PROJECT</label>
+            <select id="launcherProject"></select>
+          </div>
           <div>
             <label class="field-label">FROM</label>
             <div class="launcher-from">USER</div>
@@ -255,6 +292,10 @@ select option{background:var(--surface)}
             <label class="field-label">SUBJECT</label>
             <input id="launcherSubject" type="text" placeholder="USER発信では空欄（次のAIが自動生成）" readonly>
           </div>
+        </div>
+        <div class="launcher-reason">
+          <label class="field-label">REASON</label>
+          <textarea id="launcherReason" placeholder="なぜこのAIに依頼するか..."></textarea>
         </div>
         <div class="launcher-body">
           <label class="field-label">BODY</label>
@@ -302,6 +343,10 @@ select option{background:var(--surface)}
       </div>
       <div class="card-body">
         <div class="fields-grid">
+          <div>
+            <label class="field-label">PROJECT</label>
+            <select id="fieldProject"></select>
+          </div>
           <div>
             <label class="field-label">FROM</label>
             <select id="fieldFrom">
@@ -384,46 +429,102 @@ select option{background:var(--surface)}
 <div class="toast" id="toast"></div>
 
 <script>
-var messages=[];var selectedMsgId=null;var parsedData={};var debounceTimer=null;
-function init(){messages=loadMessages();renderLog()}
+var messages=[];var projects=[];var selectedMsgId=null;var parsedData={};var debounceTimer=null;
+var DEFAULT_PROJECT_ID="0001";
+var ROUTE_AIS=["CODEX","GEMINI","CHATGPT","CLAUDE"];
+var DEFAULT_AI_TEMPLATES=[
+  {id:"tpl-codex",name:"CODEX",to:"CODEX",type:"IMPLEMENTATION",reason:"実装依頼・バグ修正・リファクタをCODEXに依頼するため"},
+  {id:"tpl-gemini",name:"GEMINI",to:"GEMINI",type:"REVIEW",reason:"レビュー依頼・代替案探索・弱点分析をGEMINIに依頼するため"},
+  {id:"tpl-chatgpt",name:"CHATGPT",to:"CHATGPT",type:"PROPOSAL",reason:"要件整理・仕様化・プロンプト生成をCHATGPTに依頼するため"},
+  {id:"tpl-claude",name:"CLAUDE",to:"CLAUDE",type:"REVIEW",reason:"品質確認・保守性レビュー・設計レビューをCLAUDEに依頼するため"}
+];
+function init(){messages=loadMessages();projects=loadProjects();ensureProjectCoverage();renderReplyMode();renderProjectSelects();renderTemplates();renderLog()}
 function loadMessages(){try{return JSON.parse(localStorage.getItem("aimp_messages")||"[]")}catch(e){return[]}}
 function saveMessages(){localStorage.setItem("aimp_messages",JSON.stringify(messages))}
+function loadProjects(){try{var loaded=JSON.parse(localStorage.getItem("aimp_projects")||"[]");return Array.isArray(loaded)&&loaded.length?loaded:defaultProjects()}catch(e){return defaultProjects()}}
+function saveProjects(){localStorage.setItem("aimp_projects",JSON.stringify(projects))}
+function defaultProjects(){return[{project_id:DEFAULT_PROJECT_ID,project_name:"AI伝書バト"}]}
+function defaultProjectId(){return projects[0]?projects[0].project_id:DEFAULT_PROJECT_ID}
+function getMsgProjectId(msg){return msg.PROJECT_ID||msg.project_id||defaultProjectId()}
+function projectName(projectId){var p=projects.find(function(project){return project.project_id===projectId});return p?p.project_name:"未分類"}
+function ensureProjectCoverage(){if(!projects.length)projects=defaultProjects();var seen={};projects.forEach(function(p){seen[p.project_id]=true});messages.forEach(function(msg){var pid=getMsgProjectId(msg);if(!seen[pid]){projects.push({project_id:pid,project_name:msg.PROJECT_NAME||pid});seen[pid]=true}});saveProjects()}
+function nextProjectId(){var nums=projects.map(function(p){var m=String(p.project_id||"").match(/(\d+)$/);return m?parseInt(m[1]):0});var max=nums.length?Math.max.apply(null,nums):0;return String(max+1).padStart(4,"0")}
+function renderProjectSelects(){["launcherProject","fieldProject"].forEach(function(id){var sel=document.getElementById(id);if(!sel)return;var current=sel.value||defaultProjectId();sel.innerHTML=projects.map(function(p){return"<option value=\""+escapeHtml(p.project_id)+"\">"+escapeHtml(p.project_name)+"</option>"}).join("");sel.value=projects.some(function(p){return p.project_id===current})?current:defaultProjectId()})}
+function addProject(){var name=prompt("PROJECT名を入力してください");if(!name||!name.trim())return;var project={project_id:nextProjectId(),project_name:name.trim()};projects.push(project);saveProjects();renderProjectSelects();renderLog();showToast("PROJECTを追加しました: "+project.project_name,"success")}
+function loadForceAimpReply(){var saved=localStorage.getItem("aimp_force_reply");return saved===null?true:saved==="true"}
+function renderReplyMode(){var el=document.getElementById("forceAimpReply");if(el)el.checked=loadForceAimpReply()}
+function setForceAimpReply(enabled){localStorage.setItem("aimp_force_reply",enabled?"true":"false");showToast("AIMP返信モード: "+(enabled?"ON":"OFF"),enabled?"success":"")}
 function nextMsgId(){var nums=messages.map(function(m){var match=m.MESSAGE_ID&&m.MESSAGE_ID.match(/(\d+)$/);return match?parseInt(match[1]):0});var max=nums.length?Math.max.apply(null,nums):0;return"MSG-"+String(max+1).padStart(4,"0")}
 function nextThreadId(){var ids=[...new Set(messages.map(function(m){return m.THREAD_ID}).filter(Boolean))];var nums=ids.map(function(t){var m=t.match(/(\d+)$/);return m?parseInt(m[1]):0});var max=nums.length?Math.max.apply(null,nums):0;return"THREAD-"+String(max+1).padStart(4,"0")}
 function parseMessage(){var raw=document.getElementById("pasteArea").value.trim();if(!raw)return;parsedData=parseAIMP(raw);applyParsedToFields(parsedData);renderParseResult(parsedData)}
 function autoParseDebounce(){clearTimeout(debounceTimer);debounceTimer=setTimeout(function(){var raw=document.getElementById("pasteArea").value.trim();if(raw.includes("FROM:")||raw.includes("MESSAGE_ID:")){parsedData=parseAIMP(raw);applyParsedToFields(parsedData);renderParseResult(parsedData)}},600)}
-function parseAIMP(text){var result={};var singleFields=["MESSAGE_ID","THREAD_ID","FROM","TO","TYPE","PRIORITY","SUBJECT"];singleFields.forEach(function(field){var re=new RegExp("^"+field+":\\s*(.*)$","m");var m=text.match(re);if(m&&(m[1].trim()||field==="SUBJECT"))result[field]=m[1].trim()});result.REASON=extractBlock(text,"REASON",["BODY"]);result.BODY=extractBlock(text,"BODY",[]);result._raw=text;return result}
+function parseAIMP(text){var result={};var singleFields=["PROJECT_ID","MESSAGE_ID","THREAD_ID","FROM","TO","TYPE","PRIORITY","SUBJECT"];singleFields.forEach(function(field){var re=new RegExp("^"+field+":\\s*(.*)$","m");var m=text.match(re);if(m&&(m[1].trim()||field==="SUBJECT"))result[field]=m[1].trim()});result.REASON=extractBlock(text,"REASON",["BODY"]);result.BODY=extractBlock(text,"BODY",[]);result._raw=text;return result}
 function extractBlock(text,fieldName,stopFields){var startRe=new RegExp("^"+fieldName+":\\s*$","m");var startMatch=startRe.exec(text);if(!startMatch){var inlineRe=new RegExp("^"+fieldName+":\\s*(.+)$","m");var inlineM=inlineRe.exec(text);if(inlineM)return inlineM[1].trim();return""}var content=text.slice(startMatch.index+startMatch[0].length);stopFields.forEach(function(stop){var stopRe=new RegExp("^"+stop+":","m");var stopM=stopRe.exec(content);if(stopM)content=content.slice(0,stopM.index)});return content.trim()}
-function applyParsedToFields(d){var AIs=["USER","CHATGPT","CODEX","GEMINI","CLAUDE","COPILOT","GROK"];if(d.FROM&&AIs.includes(d.FROM))setSelect("fieldFrom",d.FROM);if(d.TO){var toVal=d.TO.split(",")[0].trim();if(AIs.includes(toVal)){setSelect("fieldTo",toVal);document.getElementById("fieldToCustom").value=""}else{document.getElementById("fieldToCustom").value=d.TO}}if(d.TYPE)setSelect("fieldType",d.TYPE);if(d.PRIORITY)setSelect("fieldPriority",d.PRIORITY);if(Object.prototype.hasOwnProperty.call(d,"SUBJECT"))document.getElementById("fieldSubject").value=d.SUBJECT;else if(d.FROM==="USER")document.getElementById("fieldSubject").value=""}
+function applyParsedToFields(d){var AIs=["USER","CHATGPT","CODEX","GEMINI","CLAUDE","COPILOT","GROK"];if(d.PROJECT_ID)setSelect("fieldProject",d.PROJECT_ID);if(d.FROM&&AIs.includes(d.FROM))setSelect("fieldFrom",d.FROM);if(d.TO){var toVal=d.TO.split(",")[0].trim();if(AIs.includes(toVal)){setSelect("fieldTo",toVal);document.getElementById("fieldToCustom").value=""}else{document.getElementById("fieldToCustom").value=d.TO}}if(d.TYPE)setSelect("fieldType",d.TYPE);if(d.PRIORITY)setSelect("fieldPriority",d.PRIORITY);if(Object.prototype.hasOwnProperty.call(d,"SUBJECT"))document.getElementById("fieldSubject").value=d.SUBJECT;else if(d.FROM==="USER")document.getElementById("fieldSubject").value=""}
 function setSelect(id,val){var sel=document.getElementById(id);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===val){sel.value=val;return}}}
-function renderParseResult(d){var card=document.getElementById("parseResult");var body=document.getElementById("parseTableBody");var fields=["MESSAGE_ID","THREAD_ID","FROM","TO","TYPE","PRIORITY","SUBJECT","REASON","BODY"];var autoFields=(!d.MESSAGE_ID?["MESSAGE_ID"]:[]).concat(!d.THREAD_ID?["THREAD_ID"]:[]);var html="";fields.forEach(function(f){var val=d[f]||"";if(val.length>60)val=val.substring(0,60)+"...";var isAuto=autoFields.includes(f);html+="<span class=\"parse-key\">"+f+"</span><span class=\"parse-val\">"+(val?escapeHtml(val):"<span style=\"color:var(--text-3)\">-</span>")+(isAuto?" <span class=\"parse-auto-tag\">自動</span>":"")+"</span>"});body.innerHTML=html;card.classList.add("visible")}
+function renderParseResult(d){var card=document.getElementById("parseResult");var body=document.getElementById("parseTableBody");var fields=["PROJECT_ID","MESSAGE_ID","THREAD_ID","FROM","TO","TYPE","PRIORITY","SUBJECT","REASON","BODY"];var autoFields=(!d.MESSAGE_ID?["MESSAGE_ID"]:[]).concat(!d.THREAD_ID?["THREAD_ID"]:[]);var html="";fields.forEach(function(f){var val=d[f]||"";if(val.length>60)val=val.substring(0,60)+"...";var isAuto=autoFields.includes(f);html+="<span class=\"parse-key\">"+f+"</span><span class=\"parse-val\">"+(val?escapeHtml(val):"<span style=\"color:var(--text-3)\">-</span>")+(isAuto?" <span class=\"parse-auto-tag\">自動</span>":"")+"</span>"});body.innerHTML=html;card.classList.add("visible")}
 function displaySubject(subject){return subject&&subject.trim()?subject:"(SUBJECT空欄)"}
 function subjectForSave(from,fieldSubject,parsedSubject){var direct=(fieldSubject||"").trim();var parsed=(parsedSubject||"").trim();if(direct)return direct;if(parsed)return parsed;if(from==="USER")return"";return"(件名なし)"}
-function saveMessage(){var raw=document.getElementById("pasteArea").value.trim();var from=document.getElementById("fieldFrom").value;var to=document.getElementById("fieldToCustom").value||document.getElementById("fieldTo").value;var type=document.getElementById("fieldType").value;var priority=document.getElementById("fieldPriority").value;var subject=document.getElementById("fieldSubject").value;if(!from){showToast("FROMを選択してください","error");return}if(!to){showToast("TOを選択してください","error");return}var msg={MESSAGE_ID:parsedData.MESSAGE_ID||nextMsgId(),THREAD_ID:parsedData.THREAD_ID||nextThreadId(),FROM:from,TO:to,TYPE:type||parsedData.TYPE||"META",PRIORITY:priority||parsedData.PRIORITY||"NORMAL",SUBJECT:subjectForSave(from,subject,parsedData.SUBJECT),REASON:parsedData.REASON||"",BODY:parsedData.BODY||raw,_raw:raw,_savedAt:new Date().toISOString()};messages.push(msg);saveMessages();renderLog();showToast("保存しました: "+msg.MESSAGE_ID,"success");clearCompose()}
-function renderLog(){var container=document.getElementById("logList");if(!messages.length){container.innerHTML="<div class=\"empty-state\"><div class=\"empty-state-icon\">&#128269;</div><div>まだログがありません</div></div>";return}var threads={};messages.forEach(function(msg){var tid=msg.THREAD_ID||"UNKNOWN";if(!threads[tid])threads[tid]=[];threads[tid].push(msg)});var html="";Object.entries(threads).forEach(function(entry){var tid=entry[0];var msgs=entry[1];html+="<div class=\"thread-group\"><div class=\"thread-header\" onclick=\"toggleThread('"+tid+"',this)\"><span class=\"thread-chevron open\">&#9658;</span><span class=\"thread-label\">"+tid+"</span><span class=\"thread-count\">"+msgs.length+"</span></div><div class=\"thread-messages\" id=\"thread-"+tid+"\">";msgs.forEach(function(msg){var sel=msg.MESSAGE_ID===selectedMsgId?" selected":"";var toAIs=msg.TO.split(",").map(function(s){return s.trim()}).filter(Boolean);var toBadges=toAIs.map(function(ai){return"<span class=\"ai-badge ai-"+ai+"\">"+ai+"</span>"}).join(" ");html+="<div class=\"log-item"+sel+"\" onclick=\"selectMessage('"+msg.MESSAGE_ID+"')\"><div class=\"log-dot\"></div><div class=\"log-meta\"><div class=\"log-route\"><span class=\"ai-badge ai-"+msg.FROM+"\">"+msg.FROM+"</span><span class=\"log-arrow\">&rarr;</span>"+toBadges+"<span class=\"log-type-chip\">"+msg.TYPE+"</span></div><div class=\"log-subject\">"+escapeHtml(displaySubject(msg.SUBJECT))+"</div><div class=\"log-id\">"+msg.MESSAGE_ID+"</div></div></div>"});html+="</div></div>"});container.innerHTML=html}
-function toggleThread(tid,el){var msgs=document.getElementById("thread-"+tid);var chev=el.querySelector(".thread-chevron");if(msgs)msgs.classList.toggle("collapsed");if(chev)chev.classList.toggle("open")}
-function selectMessage(msgId){selectedMsgId=msgId;var msg=messages.find(function(m){return m.MESSAGE_ID===msgId});if(!msg)return;renderLog();var metaEl=document.getElementById("detailMetaContent");var bodyEl=document.getElementById("detailBodyContent");var idEl=document.getElementById("detailMsgId");var section=document.getElementById("detailSection");var header=["MESSAGE_ID: "+msg.MESSAGE_ID,"THREAD_ID:  "+msg.THREAD_ID,"FROM:       "+msg.FROM,"TO:         "+msg.TO,"TYPE:       "+msg.TYPE,"PRIORITY:   "+msg.PRIORITY,"SUBJECT:    "+msg.SUBJECT,msg.REASON?"\nREASON:\n"+msg.REASON:""].filter(Boolean).join("\n");idEl.textContent=msg.MESSAGE_ID+" - "+new Date(msg._savedAt).toLocaleString("ja-JP");metaEl.textContent=header;bodyEl.textContent=msg.BODY||"(本文なし)";section.style.display="block";section.scrollIntoView({behavior:"smooth",block:"nearest"})}
-function generatePrompt(){var baseMsg=selectedMsgId?messages.find(function(m){return m.MESSAGE_ID===selectedMsgId}):null;if(!baseMsg&&messages.length)baseMsg=messages[messages.length-1];if(!baseMsg){showToast("ログを選択するかメッセージを保存してください","error");return}var toAIs=baseMsg.TO.split(",").map(function(s){return s.trim()}).filter(Boolean);var nextFrom=toAIs[0]||"USER";var prompt=buildPrompt(baseMsg,nextMsgId(),baseMsg.THREAD_ID,nextFrom);document.getElementById("promptBox").textContent=prompt;var sec=document.getElementById("promptSection");sec.style.display="block";sec.scrollIntoView({behavior:"smooth",block:"nearest"})}
-function buildPrompt(refMsg,newMsgId,threadId,nextFrom){var refSubject=(refMsg.SUBJECT||"").trim();var shouldGenerateSubject=refMsg.FROM==="USER"&&!refSubject;var replySubject=shouldGenerateSubject?"":(refSubject?"Re: "+refSubject:"");var subjectInstruction=shouldGenerateSubject?"SUBJECT は受信メッセージの BODY を短く要約して自動生成してください。\n":"";return"MESSAGE_ID: "+newMsgId+"\nTHREAD_ID: "+threadId+"\nFROM: "+nextFrom+"\nTO: \nTYPE: \nPRIORITY: NORMAL\nSUBJECT: "+replySubject+"\n\nREASON:\n[ここに理由を記入]\n\nBODY:\n[ここに本文を記入]\n\n---\nあなたは "+nextFrom+" です。\n以下のメッセージ ("+refMsg.MESSAGE_ID+") に返信してください。\n返信時は上のAIMPヘッダーを必ず含めてください。\n"+subjectInstruction+"TO と TYPE を自分で判断して記入してください。\n\n--- 受信メッセージ ---\nMESSAGE_ID: "+refMsg.MESSAGE_ID+"\nFROM: "+refMsg.FROM+"\nTO: "+refMsg.TO+"\nTYPE: "+refMsg.TYPE+"\nSUBJECT: "+refSubject+(refMsg.REASON?"\n\nREASON:\n"+refMsg.REASON:"")+"\n\nBODY:\n"+(refMsg.BODY||"(本文なし)")+"\n---"}
+function saveMessage(){var raw=document.getElementById("pasteArea").value.trim();var projectId=document.getElementById("fieldProject").value||parsedData.PROJECT_ID||defaultProjectId();var from=document.getElementById("fieldFrom").value;var to=document.getElementById("fieldToCustom").value||document.getElementById("fieldTo").value;var type=document.getElementById("fieldType").value;var priority=document.getElementById("fieldPriority").value;var subject=document.getElementById("fieldSubject").value;if(!from){showToast("FROMを選択してください","error");return}if(!to){showToast("TOを選択してください","error");return}var msg={PROJECT_ID:projectId,MESSAGE_ID:parsedData.MESSAGE_ID||nextMsgId(),THREAD_ID:parsedData.THREAD_ID||nextThreadId(),FROM:from,TO:to,TYPE:type||parsedData.TYPE||"META",PRIORITY:priority||parsedData.PRIORITY||"NORMAL",SUBJECT:subjectForSave(from,subject,parsedData.SUBJECT),REASON:parsedData.REASON||"",BODY:parsedData.BODY||raw,_raw:raw,_savedAt:new Date().toISOString()};messages.push(msg);saveMessages();renderLog();showToast("保存しました: "+msg.MESSAGE_ID,"success");clearCompose()}
+function renderLog(){var container=document.getElementById("logList");if(!messages.length){container.innerHTML="<div class=\"empty-state\"><div class=\"empty-state-icon\">&#128269;</div><div>まだログがありません</div></div>";return}var grouped={};messages.forEach(function(msg){var pid=getMsgProjectId(msg);if(!grouped[pid])grouped[pid]={count:0,threads:{}};grouped[pid].count++;var tid=msg.THREAD_ID||"UNKNOWN";if(!grouped[pid].threads[tid])grouped[pid].threads[tid]=[];grouped[pid].threads[tid].push(msg)});var html="";projects.forEach(function(project){var group=grouped[project.project_id];if(!group)return;var projectDomId="project-"+project.project_id;html+="<div class=\"project-group\"><div class=\"project-header\" onclick=\"toggleProject('"+project.project_id+"',this)\"><span class=\"thread-chevron open\">&#9658;</span><span class=\"project-label\">"+escapeHtml(project.project_name)+"</span><span class=\"project-count\">"+group.count+"</span></div><div class=\"project-threads\" id=\""+projectDomId+"\">";Object.entries(group.threads).forEach(function(entry){var tid=entry[0];var msgs=entry[1];var threadDomId="thread-"+project.project_id+"-"+tid;html+="<div class=\"thread-group\"><div class=\"thread-header\" onclick=\"toggleThread('"+threadDomId+"',this)\"><span class=\"thread-chevron open\">&#9658;</span><span class=\"thread-label\">"+escapeHtml(tid)+"</span><span class=\"thread-count\">"+msgs.length+"</span></div><div class=\"thread-messages\" id=\""+threadDomId+"\">";msgs.forEach(function(msg){var sel=msg.MESSAGE_ID===selectedMsgId?" selected":"";var toAIs=String(msg.TO||"").split(",").map(function(s){return s.trim()}).filter(Boolean);var toBadges=toAIs.map(function(ai){return"<span class=\"ai-badge ai-"+ai+"\">"+escapeHtml(ai)+"</span>"}).join(" ");var routeButtons=ROUTE_AIS.map(function(ai){return"<button class=\"quick-route-btn\" onclick=\"quickRoute('"+msg.MESSAGE_ID+"','"+ai+"',event)\">&rarr; "+ai+"</button>"}).join("");html+="<div class=\"log-item"+sel+"\" onclick=\"selectMessage('"+msg.MESSAGE_ID+"')\"><div class=\"log-dot\"></div><div class=\"log-meta\"><div class=\"log-route\"><span class=\"ai-badge ai-"+msg.FROM+"\">"+escapeHtml(msg.FROM)+"</span><span class=\"log-arrow\">&rarr;</span>"+toBadges+"<span class=\"log-type-chip\">"+escapeHtml(msg.TYPE)+"</span></div><div class=\"log-subject\">"+escapeHtml(displaySubject(msg.SUBJECT))+"</div><div class=\"log-id\">"+escapeHtml(msg.MESSAGE_ID)+"</div><div class=\"quick-route-row\">"+routeButtons+"</div></div></div>"});html+="</div></div>"});html+="</div></div>"});container.innerHTML=html}
+function toggleProject(projectId,el){var threads=document.getElementById("project-"+projectId);var chev=el.querySelector(".thread-chevron");if(threads)threads.classList.toggle("collapsed");if(chev)chev.classList.toggle("open")}
+function toggleThread(domId,el){var msgs=document.getElementById(domId);var chev=el.querySelector(".thread-chevron");if(msgs)msgs.classList.toggle("collapsed");if(chev)chev.classList.toggle("open")}
+function selectMessage(msgId){selectedMsgId=msgId;var msg=messages.find(function(m){return m.MESSAGE_ID===msgId});if(!msg)return;renderLog();var metaEl=document.getElementById("detailMetaContent");var bodyEl=document.getElementById("detailBodyContent");var idEl=document.getElementById("detailMsgId");var section=document.getElementById("detailSection");var pid=getMsgProjectId(msg);var header=["PROJECT:    "+projectName(pid)+" ("+pid+")","MESSAGE_ID: "+msg.MESSAGE_ID,"THREAD_ID:  "+msg.THREAD_ID,"FROM:       "+msg.FROM,"TO:         "+msg.TO,"TYPE:       "+msg.TYPE,"PRIORITY:   "+msg.PRIORITY,"SUBJECT:    "+msg.SUBJECT,msg.REASON?"\nREASON:\n"+msg.REASON:""].filter(Boolean).join("\n");idEl.textContent=msg.MESSAGE_ID+" - "+new Date(msg._savedAt).toLocaleString("ja-JP");metaEl.textContent=header;bodyEl.textContent=msg.BODY||"(本文なし)";section.style.display="block";section.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function generatePrompt(){var baseMsg=selectedMsgId?messages.find(function(m){return m.MESSAGE_ID===selectedMsgId}):null;if(!baseMsg&&messages.length)baseMsg=messages[messages.length-1];if(!baseMsg){showToast("ログを選択するかメッセージを保存してください","error");return}var toAIs=baseMsg.TO.split(",").map(function(s){return s.trim()}).filter(Boolean);var nextFrom=toAIs[0]||"USER";var prompt=buildPrompt(baseMsg,nextMsgId(),baseMsg.THREAD_ID,nextFrom,loadForceAimpReply());document.getElementById("promptBox").textContent=prompt;var sec=document.getElementById("promptSection");sec.style.display="block";sec.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function formatReceivedMessage(refMsg,refSubject){return"--- 受信メッセージ ---\nMESSAGE_ID: "+refMsg.MESSAGE_ID+"\nFROM: "+refMsg.FROM+"\nTO: "+refMsg.TO+"\nTYPE: "+refMsg.TYPE+"\nSUBJECT: "+refSubject+(refMsg.REASON?"\n\nREASON:\n"+refMsg.REASON:"")+"\n\nBODY:\n"+(refMsg.BODY||"(本文なし)")+"\n---"}
+function routeTypeFor(targetAI){if(targetAI==="CODEX")return"IMPLEMENTATION";if(targetAI==="GEMINI"||targetAI==="CLAUDE")return"REVIEW";if(targetAI==="CHATGPT")return"PROPOSAL";return"TASK"}
+function buildQuickRoutePrompt(refMsg,targetAI){var refSubject=(refMsg.SUBJECT||"").trim();var subject=refSubject?"Route: "+refSubject:"Route: "+refMsg.MESSAGE_ID;var lines=["MESSAGE_ID: "+refMsg.MESSAGE_ID,"THREAD_ID: "+(refMsg.THREAD_ID||nextThreadId()),"FROM: USER","TO: "+targetAI,"TYPE: "+routeTypeFor(targetAI),"PRIORITY: NORMAL","SUBJECT: "+subject,"","REASON:","保存済みメッセージ "+refMsg.MESSAGE_ID+" を "+targetAI+" に転送するため","","BODY:","以下の参照メッセージを読み、あなたの担当観点で回答してください。","","参照元 MESSAGE_ID: "+refMsg.MESSAGE_ID,"参照元 THREAD_ID: "+(refMsg.THREAD_ID||""),"",formatReceivedMessage(refMsg,refSubject)];if(loadForceAimpReply()){lines.push("","--- 返信指示 ---","あなたは "+targetAI+" です。必ずAIMP形式で返答してください。自然文だけの回答は禁止です。","出力は MESSAGE_ID から始め、MESSAGE_ID / THREAD_ID / FROM / TO / TYPE / PRIORITY / SUBJECT / REASON / BODY をこの順序で含めてください。")}return lines.join("\n")}
+function quickRoute(msgId,targetAI,event){if(event){event.stopPropagation();event.preventDefault()}var msg=messages.find(function(m){return m.MESSAGE_ID===msgId});if(!msg)return;selectedMsgId=msgId;renderLog();var prompt=buildQuickRoutePrompt(msg,targetAI);document.getElementById("promptBox").textContent=prompt;document.getElementById("pasteArea").value=prompt;parsedData=parseAIMP(prompt);parsedData.PROJECT_ID=getMsgProjectId(msg);applyParsedToFields(parsedData);renderParseResult(parsedData);var sec=document.getElementById("promptSection");sec.style.display="block";sec.scrollIntoView({behavior:"smooth",block:"nearest"});copyToClipboard(prompt)}
+function buildPrompt(refMsg,newMsgId,threadId,nextFrom,forceAimp){var refSubject=(refMsg.SUBJECT||"").trim();if(!forceAimp){return"あなたは "+nextFrom+" です。\n以下のメッセージ ("+refMsg.MESSAGE_ID+") に通常の自然文で返信してください。\nAIMPヘッダーは付けないでください。\n\n"+formatReceivedMessage(refMsg,refSubject)}var shouldGenerateSubject=refMsg.FROM==="USER"&&!refSubject;var replySubject=shouldGenerateSubject?"":(refSubject?"Re: "+refSubject:"");var subjectInstruction=shouldGenerateSubject?"SUBJECT は受信メッセージの BODY を短く要約して自動生成してください。\n":"";return"MESSAGE_ID: "+newMsgId+"\nTHREAD_ID: "+threadId+"\nFROM: "+nextFrom+"\nTO: \nTYPE: \nPRIORITY: NORMAL\nSUBJECT: "+replySubject+"\n\nREASON:\n[ここに理由を記入]\n\nBODY:\n[ここに本文を記入]\n\n---\nあなたは "+nextFrom+" です。\n以下のメッセージ ("+refMsg.MESSAGE_ID+") に返信してください。\n"+subjectInstruction+"TO と TYPE を自分で判断して記入してください。\n\n--- 返信モード ---\n必ずAIMP形式で返答してください。自然文だけの回答は禁止です。\n出力は MESSAGE_ID から始め、以下の項目をこの順序で含めてください。\n  MESSAGE_ID:\n  THREAD_ID:\n  FROM:\n  TO:\n  TYPE:\n  PRIORITY:\n  SUBJECT:\n\n  REASON:\n\n  BODY:\n\n"+formatReceivedMessage(refMsg,refSubject)}
 function copyPrompt(){copyToClipboard(document.getElementById("promptBox").textContent)}
-function exportJSON(){var blob=new Blob([JSON.stringify(messages,null,2)],{type:"application/json"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="aimp-export-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(url);showToast("エクスポート完了","success")}
-function importJSON(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var imported=JSON.parse(e.target.result);if(!Array.isArray(imported)){showToast("不正なJSONです","error");return}messages=imported;saveMessages();renderLog();showToast("インポート完了 ("+imported.length+"件)","success")}catch(err){showToast("JSONのパースに失敗しました","error")}};reader.readAsText(file);event.target.value=""}
-function clearCompose(){document.getElementById("pasteArea").value="";document.getElementById("parseResult").classList.remove("visible");document.getElementById("promptSection").style.display="none";document.getElementById("detailSection").style.display="none";parsedData={};["fieldFrom","fieldTo","fieldType","fieldPriority"].forEach(function(id){document.getElementById(id).value=""});document.getElementById("fieldToCustom").value="";document.getElementById("fieldSubject").value=""}
-function clearAll(){if(!confirm("localStorageのデータを全削除します。よろしいですか？"))return;localStorage.removeItem("aimp_messages");messages=[];selectedMsgId=null;renderLog();clearCompose();showToast("全データを削除しました","error")}
-function copyToClipboard(text){if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){showToast("コピーしました","success")})}else{var ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);showToast("コピーしました","success")}}
+function exportJSON(){var payload={projects:projects,messages:messages};var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="aimp-export-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(url);showToast("エクスポート完了","success")}
+function importJSON(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var imported=JSON.parse(e.target.result);if(Array.isArray(imported)){messages=imported}else if(imported&&Array.isArray(imported.messages)){messages=imported.messages;projects=Array.isArray(imported.projects)&&imported.projects.length?imported.projects:projects}else{showToast("不正なJSONです","error");return}ensureProjectCoverage();saveMessages();saveProjects();renderProjectSelects();renderLog();showToast("インポート完了 ("+messages.length+"件)","success")}catch(err){showToast("JSONのパースに失敗しました","error")}};reader.readAsText(file);event.target.value=""}
+function clearCompose(){document.getElementById("pasteArea").value="";document.getElementById("parseResult").classList.remove("visible");document.getElementById("promptSection").style.display="none";document.getElementById("detailSection").style.display="none";parsedData={};["fieldFrom","fieldTo","fieldType","fieldPriority"].forEach(function(id){document.getElementById(id).value=""});document.getElementById("fieldProject").value=defaultProjectId();document.getElementById("fieldToCustom").value="";document.getElementById("fieldSubject").value=""}
+function clearAll(){if(!confirm("localStorageのデータを全削除します。よろしいですか？"))return;localStorage.removeItem("aimp_messages");localStorage.removeItem("aimp_projects");localStorage.removeItem("aimp_custom_templates");messages=[];projects=defaultProjects();selectedMsgId=null;saveProjects();renderProjectSelects();renderTemplates();renderLog();clearCompose();showToast("全データを削除しました","error")}
+function copyToClipboard(text){function fallback(){var ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);showToast("コピーしました","success")}if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){showToast("コピーしました","success")}).catch(fallback)}else{fallback()}}
 var toastTimer=null;
 function showToast(msg,type){var t=document.getElementById("toast");t.textContent=msg;t.className="toast"+(type?" "+type:"");t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove("show")},2600)}
 function escapeHtml(str){if(!str)return"";return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function loadCustomTemplates(){try{var saved=JSON.parse(localStorage.getItem("aimp_custom_templates")||"[]");return Array.isArray(saved)?saved:[]}catch(e){return[]}}
+function saveCustomTemplates(templates){localStorage.setItem("aimp_custom_templates",JSON.stringify(templates))}
+function allTemplates(){return DEFAULT_AI_TEMPLATES.concat(loadCustomTemplates())}
+function renderTemplates(){var container=document.getElementById("templateButtons");if(!container)return;container.innerHTML=allTemplates().map(function(t){return"<button class=\"btn btn-outline btn-sm template-btn\" onclick=\"applyTemplate('"+t.id+"')\">"+escapeHtml(t.name)+"</button>"}).join("")}
+function applyTemplate(templateId){var tpl=allTemplates().find(function(t){return t.id===templateId});if(!tpl)return;setSelect("launcherTo",tpl.to);setSelect("launcherType",tpl.type);document.getElementById("launcherReason").value=tpl.reason||"";showToast("テンプレ適用: "+tpl.name,"success")}
+function saveCurrentTemplate(){var name=document.getElementById("templateName").value.trim();if(!name){showToast("テンプレ名を入力してください","error");return}var template={id:"tpl-custom-"+Date.now(),name:name,to:document.getElementById("launcherTo").value,type:document.getElementById("launcherType").value,reason:document.getElementById("launcherReason").value.trim()};var custom=loadCustomTemplates();custom.push(template);saveCustomTemplates(custom);document.getElementById("templateName").value="";renderTemplates();showToast("テンプレを追加しました","success")}
 window.AIMPLauncher=function(){
   var lastGenerated="";
   function value(id){return document.getElementById(id).value.trim()}
+  function replyInstruction(){
+    if(!loadForceAimpReply())return"";
+    return [
+      "あなたはAIMP Hubの参加者です。",
+      "返信時は必ずAIMP形式で返答してください。自然文だけの回答は禁止です。",
+      "出力は MESSAGE_ID から始め、以下の項目をこの順序で含めてください。",
+      "  MESSAGE_ID:",
+      "  THREAD_ID:",
+      "  FROM:",
+      "  TO:",
+      "  TYPE:",
+      "  PRIORITY:",
+      "  SUBJECT:",
+      "",
+      "  REASON:",
+      "",
+      "  BODY:",
+      "",
+      "--- 送信メッセージ ---"
+    ].join("\n");
+  }
   function build(){
+    var projectId=value("launcherProject");
     var to=value("launcherTo");
     var type=value("launcherType");
     var priority=value("launcherPriority");
+    var reason=value("launcherReason")||"ユーザーから指定された宛先に依頼するため";
     var body=value("launcherBody");
     if(!body){showToast("BODYを入力してください","error");return""}
-    return [
+    var message=[
+      "PROJECT_ID: "+projectId,
       "MESSAGE_ID: "+nextMsgId(),
       "THREAD_ID: "+nextThreadId(),
       "FROM: USER",
@@ -433,17 +534,20 @@ window.AIMPLauncher=function(){
       "SUBJECT: ",
       "",
       "REASON:",
-      "ユーザーから指定された宛先に依頼するため",
+      reason,
       "",
       "BODY:",
       body
     ].join("\n");
+    var instruction=replyInstruction();
+    return instruction?instruction+"\n"+message:message;
   }
   function publish(text){
     lastGenerated=text;
     document.getElementById("promptBox").textContent=text;
     document.getElementById("pasteArea").value=text;
     parsedData=parseAIMP(text);
+    parsedData.PROJECT_ID=value("launcherProject")||defaultProjectId();
     applyParsedToFields(parsedData);
     renderParseResult(parsedData);
     var sec=document.getElementById("promptSection");
